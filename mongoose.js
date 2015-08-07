@@ -27,3 +27,8 @@ mongoose.model('news',newsSchema);
 module.exports.Schema = function(modelName){
   return mongoose.Schema.model(modelName);
 }
+
+//调用的方式
+
+var user =new userDBModel.Schema("user").model; ///引入的文件名称标的名称 model对象
+
