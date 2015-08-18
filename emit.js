@@ -25,3 +25,5 @@ stream.on("data",function(data){
 });
 
 stream.write("It works!");
+
+//exports 返回的是个Json对象 而module.exports 返回的是任何的数据类型， 可以返回的是一个Class的对象
