@@ -1,0 +1,12 @@
+如何破解数据库的密码:
+1:通过任务管理器或者服务管理,关掉mysqld(服务进程)
+2:通过命令行+特殊参数开启mysqld
+Mysqld --skip-grant-tables
+3:此时,mysqld服务进程已经打开,并且,不需要权限检查.
+4:mysql -uroot  无密码登陆服务器.
+5: 修改权限表
+  A: use mysql;
+  B:update user set Password = password('11111') where User = 'root';
+  C:flush privileges;
+6:通过任务管理器,或服务管理,关掉mysqld服务进程.
+7:再次通过服务管理,打开mysql服务.
