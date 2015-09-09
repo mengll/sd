@@ -1,0 +1,1 @@
+在mysql的配置文件my.ini里，找到mysqld项，添加skip-grant-tables，则登录时无需密码；不过记得登陆进去后要修改密码哦，用:update mysql.user set password=password(123456) where user="root"
