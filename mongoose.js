@@ -38,6 +38,6 @@ UserSchema.index({email: 1}, {unique: true});
 UserSchema.index({score: -1});
 
 UserSchema.virtual('isAdvanced').get(function () {
-  // 为满足某些特殊的需求，而创建新增的虚拟的属性
+  // 为满足某些特殊的需求，而创建新增的虚拟的属性 在最后的时候要返回你说定义的，虚拟的属性
   return this.score > 700 || this.is_star;
 });
