@@ -33,12 +33,11 @@ module.exports.Schema = function(modelName){
 var user =new userDBModel.Schema("user").model; ///引入的文件名称标的名称 model对象
 
 //创建索引
-
 UserSchema.index({loginname: 1}, {unique: true});
 UserSchema.index({email: 1}, {unique: true});
 UserSchema.index({score: -1});
 
 UserSchema.virtual('isAdvanced').get(function () {
-  // 积分高于 700 则认为是高级用户
+  // 为满足某些特殊的需求，而创建新增的虚拟的属性
   return this.score > 700 || this.is_star;
 });
