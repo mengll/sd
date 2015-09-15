@@ -41,3 +41,7 @@ UserSchema.virtual('isAdvanced').get(function () {
   // 为满足某些特殊的需求，而创建新增的虚拟的属性 在最后的时候要返回你说定义的，虚拟的属性
   return this.score > 700 || this.is_star;
 });
+
+//创建链接的密码的实现
+
+var md5 = crypto.createHash('md5') var password = md5.update().digest('hex'); //获取当前的加密的密钥
