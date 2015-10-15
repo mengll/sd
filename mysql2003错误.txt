@@ -1,0 +1,5 @@
+在链接mysql的时候经常的会出现 2003错误  
+这个是在mysql的配置的过程中绑定了地址  bind_address 127.0.0.1 默认的情况下 只要注释掉这条数据设置 
+
+mysql》 flush privileges;
+service mysql restart 重启就可以了
