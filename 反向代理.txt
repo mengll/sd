@@ -1,0 +1,57 @@
+location /{
+  proxy_pass http://42.96.136.3 ; //这是代理的地址
+  }
+  
+  代理的地址 upmstream 设置集群的设置 
+  server {
+        listen 80 default_server;
+        listen [::]:80 default_server ipv6only=on;
+
+        root 42.96.194.3//usr/share/nginx/html/phpcms;
+        index index.php index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        server_name localhost;
+
+        location / {
+                 proxy_redirect off;
+                 proxy_set_header Host $host;
+                 proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                #proxy_pass http://42.96.194.3;
+                #include /etc/nginx/proxy_params
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+                proxy_pass http://42.96.194.3
+                # Uncomment to enable naxsi on this location
+                # include /etc/nginx/naxsi.rules
+        }
+//主地址---………………^^^^^^
+
+//代理的服务气短配置
+
+
+
+server {
+        listen 80 default_server;
+        listen 123.57.233.38:80 default_server ipv6only=on;
+
+        root /usr/share/nginx/html/phpcms;
+        index index.php index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        server_name 123.57.233.38;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+                # Uncomment to enable naxsi on this location
+                # include /etc/nginx/naxsi.rules
+        }
+//设置代理服务起的设置
+
+
+
+
