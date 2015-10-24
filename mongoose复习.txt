@@ -1,0 +1,40 @@
+var mongoose = reuqire('mongoose');
+var schema = mongoose.schema({
+   name:string,
+   age:{
+        type:Number,
+        default:'',
+        set:function(uil){
+          usrl += 'menglingliang';
+          reurn ;
+        }，
+        required:true,///必选的
+      , max :2,min23,
+   },
+   blog:{
+    type:string,
+    defalut:'',
+    get:funcion(url){}
+   }
+   ,status:{
+    type:String,
+    enum:['','',''],//枚举的方式 
+    match: /book/g 正则的方式
+    validate :function(){
+      //自定义的验证的方法的实现
+    }
+   }
+});
+
+///创建model
+ var model = mongoose.Model('User',schema);
+//创建基本的相关的数据
+//预定义修饰符 自定义修饰符
+//创建虚拟的属性，在文件不存在的时候创建相关的对象 virtual //创建虚拟的属性的方法 schema.virtual('虚拟的文件名').get(function(){})
+json.stringify(); 虚拟的属性，在转换的时候会出现传唤不成功的时候，需要设置的是 ，在模型设置 mongoose.schema.set('toJson',{'getters':true,'virtual':true})
+//这样设置后，能保证，数据成功的转出
+//创建基本的方法完成相关属性
+schema.static.names = function(){ //可以传递相关的参数，完成性能的传递的表现的方式
+
+
+}
