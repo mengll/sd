@@ -15,7 +15,8 @@ apt-get install libcurl4-gnutls-dev
 
 
 sudo apt-get install libjpeg-dev
-
+sudo apt-get install libfreetype6-dev
+//根据实际的情况查看是否有包的存在
 
 sudo apt-get install libpng-dev
 
