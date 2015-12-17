@@ -86,3 +86,10 @@ groupadd www-data
 
 
 sudo /usr/local/php/sbin/php-fpm
+
+如果不能自动编译
+
+sudo apt-get install m4
+sudo apt-get install autoconf
+安装相关的包
+
