@@ -92,4 +92,5 @@ sudo /usr/local/php/sbin/php-fpm
 sudo apt-get install m4
 sudo apt-get install autoconf
 安装相关的包
-
+在安装的时候要注意php_config的使用的 /usr/loacal/php/ bin/php-config
+曾经的过错注意 php.ini 的位置 /usr/local/php/lib/php.ini
