@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>创建动画</title>
+    <script src="lib.js"></script>
+    <script type="text/javascript">
+        "use strict"
+        //create vertexShaderSource
+
+        var vertexShaderSource = "attribute vec4 aposition ; \n" +
+                "uniform mat4 py; \n" +
+                "uniform mat4 xz; \n" +
+                "void main(void){" +
+                "gl_Position = py * xz * aposition  ;\n" +
+                "gl_PointSize = 10.0; \n" +
+                "}";
+        //createfrgmentShaderSource
+        var frgmentShaderSource = "void main(void){" +
+                "gl_FragColor = vec4(0.0,0.1,0.2,1.0); \n" +
+                "}";
+
+        function main(){
+            var canvas = document.getElementById("webgl");
+            var webgl = canvas.getContext("webgl");
+            //create DAT6A
+            var data = new Float32Array([
+                    0.1,0.2,
+                    0.2,0.3,
+                    0.1,0.3
+            ]);
+            var cosB,sinB ;
+            var tx = 0.0;
+            var ty = 0.0;
+            var angle  = 30.0; //旋转的角度
+            var program  = initShader(webgl,vertexShaderSource,frgmentShaderSource);
+
+            //获取当前对象的值
+            var apositionlocation = webgl.getAttribLocation(program,"aposition");
+
+            //创建buffer
+            var buf = webgl.createBuffer();
+            webgl.bindBuffer(webgl.ARRAY_BUFFER,buf);
+            webgl.bufferData(webgl.ARRAY_BUFFER,data,webgl.STATIC_DRAW);
+            //设置当前的数据点
+            webgl.vertexAttribPointer(apositionlocation,2,webgl.FLOAT,false,0,0);
+            webgl.enableVertexAttribArray(apositionlocation);
+
+            function animate(){
+              //  console.log(angle);
+              //  angle +=5;
+                var tt = Math.PI * angle /180;
+                cosB = Math.cos(tt);
+                sinB = Math.sin(tt);
+                //创建旋转矩阵
+                var xz = new Float32Array([
+                    cosB,sinB,0.0,0.0,
+                    -sinB,cosB,0.0,0.0,
+                    0.0,0.0,1.0,0.0,
+                    0.0,0.0,0.0,1.0
+                ]);
+                tx += 0.005;
+                ty +=0.005;
+                angle +=1;
+                //平移矩阵
+                var py = new Float32Array([
+                    1.0,0.0,0.0,0.0,
+                    0.0,1.0,0.0,0.0,
+                    0.0,0.0,1.0,0.0,
+                    tx,ty,0.0,1.0
+                ]);
+                var xzuniform = webgl.getUniformLocation(program,'xz');
+                var pyuniform = webgl.getUniformLocation(program,'py');
+                //传入当前的旋转的矩阵到数组
+                webgl.uniformMatrix4fv(xzuniform,false,xz); //获取当前的矩阵的实现
+                webgl.uniformMatrix4fv(pyuniform,false,py); //这是一个平移的举证
+
+                //清除当前的颜色矩阵
+                webgl.clearColor(1.0,0.0,0.0,1.0);
+                webgl.clear(webgl.COLOR_BUFFER_BIT);
+                webgl.drawArrays(webgl.TRIANGLES,0,3);
+                setTimeout(animate,100);
+            }
+            animate();
+        }
+ //使用webgl创建动画的运动的效果的
+    </script>
+
+</head>
+<body onload="main()">
+<canvas id="webgl" width="600px" height="600px"></canvas>
+</body>
+</html>
