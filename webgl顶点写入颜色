@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数据信息传入到着色器</title>
+    <script src="lib.js"></script>
+    <script type="text/javascript">
+        //create vertexShader
+
+        var vertexShaderSource ="attribute vec4 aposition; \n" +
+                "varying vec4  color;\n" +
+                "attribute vec4 a_color;\n" +
+                "void main(void){" +
+                "gl_Position = aposition ; \n" +
+                "gl_PointSize = 10.0; \n" +
+                "color = a_color;\n"  +
+                "}";
+
+        //创建片元着色器
+        var fragmentShaderSource =" precision lowp float ;\n" +
+                "varying vec4 color;\n"+
+                "void main(void){ \n" +
+                "gl_FragColor = color;\n" +
+                "" +
+                "}";
+
+        function main(){
+            var canvas = document.getElementById("webgl");
+            var webgl = canvas.getContext("webgl");
+            var program = initShader(webgl,vertexShaderSource,fragmentShaderSource);
+
+            // 获取当前的颜色的值得数据
+            var buf = webgl.createBuffer();
+            webgl.bindBuffer(webgl.ARRAY_BUFFER,buf);
+            // create data
+            var data = new Float32Array([
+                0.0,0.3, 1.0,0.0,0.0,
+                -0.3,-0.3, 0.0,1.0,0.0,
+                0.5,-0.5,0.0,0.0,1.0
+            ]);
+
+            var BYTES_SIZE = data.BYTES_PER_ELEMENT  ;
+
+            webgl.bufferData(webgl.ARRAY_BUFFER,data,webgl.STATIC_DRAW);
+
+            //获取当前的对象
+            var sposition  = webgl.getAttribLocation(program,'aposition');
+            webgl.vertexAttribPointer(sposition,2,webgl.FLOAT,false,BYTES_SIZE*5,0);
+            webgl.enableVertexAttribArray(sposition);
+
+            //create the color data
+            var vcolor = webgl.getAttribLocation(program,'a_color');
+            webgl.vertexAttribPointer(vcolor,2,webgl.FLOAT,false,BYTES_SIZE*5,BYTES_SIZE*3);
+            webgl.enableVertexAttribArray(vcolor);
+
+            webgl.drawArrays(webgl.TRIANGLES,0,3);
+
+        }
+
+    </script>
+</head>
+<body onload="main()">
+<canvas id="webgl" width="600px" height="600px"></canvas>
+</body>
+</html>
