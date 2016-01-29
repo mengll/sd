@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>闯入颜色到片元着色器</title>
+    <script type="text/javascript">
+        "use strict";
+        //创建片元着色器attribute
+         var fragmentShaderSource ="precision lowp float;\n" +
+                 "varying vec4  color;\n" +
+                 "void main(void){\n" +
+                 "gl_FragColor = color;\n" +
+                 "}";
+
+        //创建顶点着色器
+        var vattributeShaderSource = "attribute vec4 aposition; \n" +
+                "attribute vec4 udata; \n" +
+                "varying vec4 color; \n" +
+                "void main(void){\n" +
+                "gl_Position = aposition;\n" +
+                "gl_PointSize = 10.0;\n" +
+                "color = udata;\n" +
+                "}";
+
+        function main(){
+            var canvas = document.getElementById("webgl");
+            var webgl = canvas.getContext("webgl");
+
+            var vertexShader = webgl.createShader(webgl.VERTEX_SHADER);
+            var fragmentShader = webgl.createShader(webgl.FRAGMENT_SHADER );
+
+            webgl.shaderSource(vertexShader,vattributeShaderSource);
+            webgl.shaderSource(fragmentShader,fragmentShaderSource);
+
+            //compilement 编译
+            webgl.compileShader(vertexShader);
+            webgl.compileShader(fragmentShader);
+
+            //chuangjian program
+            var program = webgl.createProgram();
+
+            //创建缓冲区
+            webgl.attachShader(program,vertexShader);
+            webgl.attachShader(program,fragmentShader);
+
+            webgl.linkProgram(program);
+            webgl.useProgram(program);
+
+            //create data
+
+            var data = new Float32Array([
+                    0.1,0.2,0.3,1.0,0.6,
+                    0.3,0.5,0.2,0.7,0.6,
+                    0.4,0.2,0.2,0.5,0.4
+            ]); //创建格式化数据
+            var buf = webgl.createBuffer();
+
+            webgl.bindBuffer(webgl.ARRAY_BUFFER,buf);
+            webgl.bufferData(webgl.ARRAY_BUFFER,data,webgl.STATIC_DRAW); //绘制当前的对象一次绘制多次使用
+
+            //获取当前对象变量的地址
+            var a_position = webgl.getAttribLocation(program,'aposition');
+            var u_data = webgl.getAttribLocation(program,'udata');
+
+            //传递数据到相关的变量中
+            var DATA_SIZE = data.BYTES_PER_ELEMENT;
+
+            webgl.vertexAttribPointer(a_position,2,webgl.FLOAT,false,DATA_SIZE*5,0);
+            webgl.vertexAttribPointer(u_data,2,webgl.FLOAT,false,DATA_SIZE*5,DATA_SIZE*3);
+
+            webgl.enableVertexAttribArray(a_position);
+            webgl.enableVertexAttribArray(u_data);
+
+
+            webgl.clearColor(1.0,0.1,0.0,1.0);
+            webgl.clear(webgl.COLOR_BUFFER_BIT);
+            webgl.drawArrays(webgl.TRIANGLES,0,3);
+
+        }
+    //在这次的书写的过程中出现了两个错误  一个是在书写片元着色器的时候 precision 书写错误 二个就是在使用 在书写enableVertexAttribArray的时候出现传递的对象的名字不正确！ 下次书写的时候注意啊
+    </script>
+</head>
+<body onload="main()">
+<canvas id="webgl" width="600px" height="600px"></canvas>
+</body>
+</html>
