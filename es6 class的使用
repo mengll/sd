@@ -1,0 +1,134 @@
+
+1.创建schema 
+var mongoose = require('mongoose');
+var schema = mongoose.Schema;
+
+//创建用户
+　
+var User = new schema({
+    name:String,
+    age:Number,
+    password:String
+});
+
+module.exports = mongoose.model("User",User);
+//创建
+2.创建底层模型类
+"use strict";
+/*
+    1.创建基类包含了数据库的链接的操作的实现
+ */
+var mongoose = require('mongoose');
+var crypto = require("crypto"); //获取核心的类库的
+class baseModel {
+
+    init(){
+        //创建链接数据库的操作的实现
+        mongoose.connect("mongodb@127.0.0.1:27017/mengll",function(err){
+            if(err){
+                console.log(err);
+            }
+
+        });
+    }
+    /*
+     构造函数
+     */
+    constructor(model){
+        //创建构造函数
+        this.model = model;
+        this.init();
+    }
+
+    /*
+        返回当前的内容的数量
+        param 设置当前的请求的参数
+     */
+
+    getDataCount(obj,calback){
+        //这是个异步的操作的实现
+        this.model.count(obj,function(err,data){
+        });
+    } //end getcount
+
+    /*
+     封装一个获取多个数据的操作
+     */
+
+    getDataList(){
+
+
+    }
+
+    /*
+        封装当前创建密码的函数
+     */
+
+    getMd5(pss){
+        return require('crypto').createHash('md5').update(pss).digest('hex');;
+      //  var md5 = crypto.createHash('md5');
+
+    }
+
+     
+}
+
+//new oldModel();
+module.exports = baseModel;
+
+3.创建用户类
+
+"use strict";
+var baseModel =require("./baseModel.js");
+var mongoose = require('mongoose');
+
+//引入父级的相关的类库
+class userModel extends baseModel{
+    constructor(){
+        var rmodel = require("../schema/userSchema");
+        super(rmodel);//调用父类的model
+        this.model = rmodel;
+        //创建 schema
+    }
+	//书写方法，通用的可以放在父类里面实现
+	    /*
+        创建新的用户的相关的信息
+     */
+
+    createUser(){
+        this.model.create({},function(err,data){
+            if(err){
+                console.log(err);
+            }else{
+                console.log(data);
+            }
+        });
+    }
+
+}
+
+module.exports = userModel;
+
+4.调用
+
+var express = require('express');
+var router = express.Router();
+//引入用户类
+var userModel = require("../models/userModel");
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  var  model = new userModel(); //调用
+  model.createUser(); //调用其中的方法
+
+  /*
+    删除当前的一个用户的相关的信息
+   */
+  //model.pp();
+  res.render('index', { title: '创建属于自己的cms的后台的操作的实现' });
+});
+
+module.exports = router;
+/*
+*  
+*/
+
