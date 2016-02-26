@@ -1,0 +1,15 @@
+		<% include ../header %>
+		<!-- /section:basics/navbar.layout -->
+		<div class="main-container" id="main-container"> <!--引入相关的外部的文件的操作-->
+			<script type="text/javascript">
+				try{ace.settings.check('main-container' , 'fixed')}catch(e){}
+			</script>
+
+			<!-- #section:basics/sidebar -->
+			<% include ../admin_menu %>
+			<!-- /section:basics/sidebar -->
+			<div class="main-content">
+			
+			</div><!-- /.main-content -->
+
+	<% include ../footer %>
