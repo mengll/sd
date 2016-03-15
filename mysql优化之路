@@ -1,0 +1,51 @@
+#1 语句的执行的时间和相关的效率
+  数据库版本 5.6.16
+   关闭缓存
+    set query_cache_size=0;
+    set query_cache_type=OFF;
+
+Index Condition Pushdown (ICP)是MySQL 5.6 版本中的新特性,是一种在存储引擎层使用索引过滤数据的一种优化方式。
+a 当关闭ICP时,index 仅仅是data access 的一种访问方式，存储引擎通过索引回表获取的数据会传递到MySQL Server 层进行where条件过滤。
+b 当打开ICP时,如果部分where条件能使用索引中的字段,MySQL Server 会把这部分下推到引擎层,可以利用index过滤的where条件在存储引擎层进行数据过滤,而非将所有通过index access的结果传递到MySQL server层进行where过滤.
+优化效果:ICP能减少引擎层访问基表的次数和MySQL Server 访问存储引擎的次数,减少io次数，提高查询语句性能。
+
+  mysql> SET profiling = 1; 开启icp( Index Condition Pushdown condition 条件) 
+   
+   mysql> show profiles;  显示的当前语句的执行的时间及性能参数
+   
+   mysql> show profile cpu,block io for query 1; 是现实某条语句的详细的插叙的效果
+   
+   mysql> explain select * from employees where first_name='Anneke' and last_name like '%nta' ; 查询语句的当前的状态
+３　关闭ＩＣＰ
+mysql> set optimizer_switch='index_condition_pushdown=off';
+
+四 ICP的使用限制 
+1 当sql需要全表访问时,ICP的优化策略可用于range, ref, eq_ref,  ref_or_null 类型的访问数据方法 。
+2 支持InnoDB和MyISAM表。
+3 ICP只能用于二级索引，不能用于主索引。
+4 并非全部where条件都可以用ICP筛选。
+   如果where条件的字段不在索引列中,还是要读取整表的记录到server端做where过滤。
+5 ICP的加速效果取决于在存储引擎内通过ICP筛选掉的数据的比例。
+6 5.6 版本的不支持分表的ICP 功能，5.7 版本的开始支持。
+7 当sql 使用覆盖索引时，不支持ICP 优化方法。
+
+2.性能优化之延迟关联
+
+
+SELECT id, cu_id, name, info, biz_type, gmt_create, gmt_modified,start_time, end_time, market_type, back_leaf_category,item_status,picuture_url FROM relation where biz_type ='0' AND end_time >='2014-05-29' ORDER BY id asc LIMIT 149420 ,20;
+表的数据量大致有36w左右，该sql是一个非常典型的排序+分页查询：order by col limit N,OFFSET M , MySQL 执行此类sql时需要先扫描到N行，然后再去取 M行。对于此类大数据量的排序操作，取前面少数几行数据会很快，但是越靠后，sql的性能就会越差，因为N越大，MySQL 需要扫描不需要的数据然后在丢掉，这样耗费大量的时间。
+
+【分析】
+针对limit 优化有很多种方式，
+1 前端加缓存，减少落到库的查询操作
+2 优化SQL
+3 使用书签方式 ，记录上次查询最新/大的id值，向后追溯 M行记录。
+4 使用Sphinx 搜索优化。
+
+2）优化后的语句
+  SELECT a.* FROM relation a, (select id from relation where biz_type ='0' AND end_time >='2014-05-29' ORDER BY id asc LIMIT 149420 ,20 ) b where a.id=b.id
+  
+  查询后的语句速度提升
+   
+   
+   
