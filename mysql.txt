@@ -25,3 +25,9 @@ mysql 开启远程链接的授权命令
 　　4、mysql>EXIT 
 
 　　//退出MySQL服务器，这样就可以在其它任何的主机上以root身份登录 
+
+   5.mysql 授权
+   grant select,insert on database.tablename to 'user'@'host' identified by 'password';
+   
+   
+   
