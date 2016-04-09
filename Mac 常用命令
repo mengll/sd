@@ -19,3 +19,5 @@ $ scp .zshrc username@192.168.100.100:/Users/username/
 3.带有端口的形式链接远程的服务器
 
 ssh -p 8080 damin@服务器ip地址
+
+scp AngularJS权威教程.pdf root@123.57.233.38:/usr/share/nginx/dandan
