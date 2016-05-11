@@ -33,5 +33,9 @@ mysql 开启远程链接的授权命令
    
    mysqladmin -u root  password 'newpassword'
    
+   7 .Linux 生成软连接
+   
+       ln -s 原始的地址  软连接存在的地址
+   
    
    
