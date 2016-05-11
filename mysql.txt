@@ -29,5 +29,9 @@ mysql 开启远程链接的授权命令
    5.mysql 授权
    grant select,insert on database.tablename to 'user'@'host' identified by 'password';
    
+   6. 修改数据库的默认密码
+   
+   mysqladmin -u root  password 'newpassword'
+   
    
    
