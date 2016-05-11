@@ -1,0 +1,7 @@
+1. rewrite 
+指令 语法 指令 语法：
+rewrite regex replacement[ flag]；
+默认值： none 
+应用 位置： server、 location、 if rewrite 是 实现 URL 重写 的 关键 指令， 根据 regex（ 正 则 表式的方式的部分，重定向到replacement的部分 结尾
+是flag 标记
+rewrite ^/(.*) http://www.baidu.com/$1 permanent 重定向到这个 后面的参数表示的是重定向301 永久的重定向
