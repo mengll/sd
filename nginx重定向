@@ -5,3 +5,48 @@ rewrite regex replacement[ flag]；
 应用 位置： server、 location、 if rewrite 是 实现 URL 重写 的 关键 指令， 根据 regex（ 正 则 表式的方式的部分，重定向到replacement的部分 结尾
 是flag 标记
 rewrite ^/(.*) http://www.baidu.com/$1 permanent 重定向到这个 后面的参数表示的是重定向301 永久的重定向
+
+2 nginx 中常用变量的 解析
+
+参数注释如下:
+正则表达式匹配，其中：
+ 
+
+* ~ 为区分大小写匹配
+* ~* 为不区分大小写匹配
+* !~和!~*分别为区分大小写不匹配及不区分大小写不匹配
+文件及目录匹配，其中：
+ 
+
+* -f和!-f用来判断是否存在文件
+* -d和!-d用来判断是否存在目录
+* -e和!-e用来判断是否存在文件或目录
+* -x和!-x用来判断文件是否可执行
+flag标记有：
+ 
+
+* last 相当于apache里的[L]标记，表示完成rewrite
+* break 终止匹配, 不再匹配后面的规则
+* redirect 返回302临时重定向 地址栏会显示跳转后的地址
+* permanent 返回301永久重定向 地址栏会显示跳转后的地址
+ 
+$args 此变量与请求行中的参数相等
+$content_length 等于请求行的“Content_Length”的值。
+$content_type 等同与请求头部的”Content_Type”的值
+$document_root 等同于当前请求的root指令指定的值
+$document_uri 与$uri一样
+$host 与请求头部中“Host”行指定的值或是request到达的server的名字（没有Host行）一样
+$limit_rate 允许限制的连接速率
+$uri 等同于当前request中的URI，可不同于初始值，例如内部重定向时或使用index
+$server_protocol 等同于request的协议，使用“HTTP/1.0”或“HTTP/1.1”
+$server_port 请求到达的服务器的端口号
+$server_name 请求到达的服务器名
+$server_addr request到达的server的ip，一般获得此变量的值的目的是进行系统调用。为了避免系统调用，有必要在listen指令中指明ip，并使用bind参数。
+$request_uri 含有参数的完整的初始URI
+$request_method 等同于request的method，通常是“GET”或“POST”
+$request_filename 当前请求的文件的路径名，由root或alias和URIrequest组合而成
+$request_body_file
+$remote_user 等同于用户名，由ngx_http_auth_basic_module认证
+$remote_port 客户端port
+$remote_addr 客户端ip
+$query_string 与$args一样
