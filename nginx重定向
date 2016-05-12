@@ -50,3 +50,6 @@ $remote_user 等同于用户名，由ngx_http_auth_basic_module认证
 $remote_port 客户端port
 $remote_addr 客户端ip
 $query_string 与$args一样
+
+4，当前在events的模块下面的操作执行     debug_connection 192.168.1.1; 指定调试的用户的出现调试的信息的设置
+
