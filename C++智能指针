@@ -1,0 +1,20 @@
+#include <memory>
+
+void autoptr(){
+    while( 1 ){
+        double *p (new double[1024*10]);
+        auto_ptr<double>autop(p); //创建相关的类型 类型变量名 初始化
+        //auto_prt<数据类型>变量名(初始化数据);
+    //    Sleep(6000);
+    }
+}
+
+//新版本的智能指针
+void autonew(){
+    while(1){
+        unique_ptr<double>p(new double([1024*10]));
+        unique_ptr<数据类型>变量名(初始化数据);
+    }
+
+}
+
