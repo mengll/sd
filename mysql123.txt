@@ -1,0 +1,7 @@
+with rollup 可选语法，表明是否对类聚合后的结果进行再汇总
+having 关键字表示对分类后的结果在进行条件的过滤
+select depo,count(1) from one group by depo with rollup
+
+1.授权
+grant select ,update on 表 to 'username'@'localhost' identified by 'pass' 授权，表的操作相关操作 
+
