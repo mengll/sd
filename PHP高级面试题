@@ -36,3 +36,79 @@
 29. 如何提高缓存命中率? 如何对缓存进行颗粒化?
 30. php的内存回收机制是?
 31. 我的所有问题都问完了,你有什么问题问我没有？
+
+
+一、mysql相关知识
+    1、 mysql优化方式
+            MYSQL 优化常用方法
+            mysql 性能优化方案
+  
+    2、如何分库分表
+           参考：
+   http://blog.sina.com.cn/s/blog_6e322ce70100zs9a.html
+           http://www.jb51.net/article/29771.htm
+
+   3、 Mysql+如何做双机热备和负载均衡
+http://www.dewen.org/q/51/Mysql+如何做双机热备和负载均衡
+    
+   4、数据表类型有哪些
+       MyISAM、InnoDB、HEAP、BOB,ARCHIVE,CSV等
+       MyISAM：成熟、稳定、易于管理，快速读取。一些功能不支持（事务等），表级锁。
+       InnoDB：支持事务、外键等特性、数据行锁定。空间占用大，不支持全文索引等。
+
+       myisam和Innodb引擎的主要特点
+       MySQL的存储引擎MyISAM与InnoDB有什么区别？
+
+   5、防sql注入方法
+      mysql_escape_string(strip_tags($arr["$val"]));
+
+/**
+* 函数名称：post_check() 
+* 函数作用：对提交的编辑内容进行处理 
+* 参　　数：$post: 要提交的内容 
+* 返 回 值：$post: 返回过滤后的内容 
+*/
+function post_check($post){
+if(!get_magic_quotes_gpc()){// 判断magic_quotes_gpc是否为打开 
+$post = addslashes($post);// 进行magic_quotes_gpc没有打开的情况对提交数据的过滤 
+}
+$post = str_replace("_","\_", $post);// 把 '_'过滤掉
+$post = str_replace("%","\%", $post);// 把 '%'过滤掉
+$post = nl2br($post);// 回车转换 
+$post = htmlspecialchars($post);// html标记转换 
+
+return $post;
+}
+ 
+
+   6、mysql把一个大表拆分多个表后,如何解决跨表查询效率问题
+   7、索引应用
+         什么情况下考虑索引
+         什么情况不适合索引
+         一个语句是否用到索引如何判断
+        经常发生的用不到索引的场景：
+                like '%.....'
+                数据类型隐式转换
+                or 关键字加其它条件约束
+       全文索引：
+                只能用于MYIsAM表，在CHAR,VARCHAR,TEXT类型的列上创建。
+       
+
+   8、mysql对于大表(千万级),要怎么优化呢?
+        参考http://www.zhihu.com/question/19719997
+
+   9、mysql的慢查询问题
+  其实通过慢查询日志来分析是一种比较简单的方式，如果不想看日志，可以借助工具来完成，
+
+如mysqldumpslow, mysqlsla, myprofi, mysql-explain-slow-log, mysqllogfilter等，感觉自己来分析一个需要丰富的经验，一个浪费时间。
+
+10、关于用户登录状态存session,cookie还是数据库或者memcache的优劣 http://www.dewen.org/q/11504/
+
+关于用户登录状态存session%2Ccookie还是数据库或者memcache的优劣
+
+  11、事务应用极端情况处理
+  12、sql语言分4大类请列举
+        DDL--CREATE,DROP,ALTER
+        DML--INSERT,UPDATE,DELETE
+        DQL-SELECT
+        DCL--GRANT,REVOKE,COMMIT,ROLLBACK
