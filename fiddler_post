@@ -1,0 +1,15 @@
+User-Agent: Fiddler
+Host: appi.anfeng.cn
+Content-Length: 68
+Content-Type: application/x-www-form-urlencoded
+
+2)然后在requestbody 中设置
+t=1491293754&appid=14600161732&sign=0b9b70ed4144ce0f0109b6b8b409f4b格式的参数
+3）如果是传递json格式的参数 Content-Type: application/json
+
+{
+    "age": "23",
+    "name": "bugger"
+}
+php中接收参数的方法
+$GLOBALS['HTTP_RAW_POST_DATA']
