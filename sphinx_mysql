@@ -1,0 +1,399 @@
+coreseek4.1 （包含coreseek测试版和mmseg最新版本，以及测试数据包【内置中文分词与搜索、单字切分、mysql数据源、python数据源、RT实时索引等测试配置】） 
+Mysql源码包 （必须选择与你已安装mysql的版本一致
+
+yum install make gcc g++ gcc-c++ libtool autoconf automake imake mysql-devel libxml2-devel expat-devel
+#或
+apt-get install make gcc g++ automake libtool mysql-client libmysqlclient15-dev libxml2-dev libexpat1-dev
+#更多系统配置请点此传送查看
+
+
+二，coreseek快速安装
+1，安装mmseg3
+$ cd mmseg-3.2.14
+$ ./bootstrap    #输出的warning信息可以忽略，如果出现error则需要解决
+$ ./configure --prefix=/usr/local/mmseg3 
+$ make && make install
+$ cd ..
+
+【注意】如果编译mmseg提示cannot find input file: src/Makefile.in失败，可以尝试下面解决方法:
+
+#下面命令提示没有安装，则先安装
+aclocal
+libtoolize --force 运行后有一个错误，不用管它。
+automake --add-missing
+autoconf
+autoheader
+make clean
+./configure --prefix=/usr/local/mmseg3
+
+ 2，安装coreseek
+ ##安装coreseek
+$ cd csft-4.1
+$ sh buildconf.sh    #输出的warning信息可以忽略，如果出现error则需要解决
+$ ./configure --prefix=/usr/local/coreseek  --without-unixodbc --with-mmseg --with-mmseg-includes=/usr/local/mmseg3/include/mmseg/ --with-mmseg-libs=/usr/local/mmseg3/lib/ --with-mysql    ##如果提示mysql问题，可以查看MySQL数据源安装说明
+
+#不想麻烦，可以直接使用下面这句
+$ ./configure --prefix=/usr/local/coreseek  --without-unixodbc --with-mmseg --with-mmseg-includes=/usr/local/mmseg3/include/mmseg/ --with-mmseg-libs=/usr/local/mmseg3/lib/ --with-mysql-includes=《mysql安装目录》/include --with-mysql-libs=《mysql安装目录》/lib
+$ make && make install
+$ cd ..
+http://www.coreseek.cn/product_install/install_on_bsd_linux/#mysql 数据库
+http://blog.csdn.net/jcjc918/article/details/39032689 sphinx
+
+【注意】如果出现Sphinx/Coreseek 4.1 执行 buildconf.sh 报错，无法生成configure文件的问题，点此传送解决。值得一提的是vi‘替换所有’小技巧：末行模式下输入“:1,$s/T val = ExprEval ( this->m_pArg, tMatch )/T val = this->ExprEval ( this->m_pArg, tMatch )/g”从第一行开始替换到最后一行
+
+3，测试mmseg分词，coreseek搜索
+
+##测试mmseg分词，coreseek搜索（需要预先设置好字符集为zh_CN.UTF-8，确保正确显示中文）
+$ cd testpack
+$ cat var/test/test.xml    #此时应该正确显示中文
+$ /usr/local/mmseg3/bin/mmseg -d /usr/local/mmseg3/etc var/test/test.xml
+$ /usr/local/coreseek/bin/indexer -c etc/csft.conf --all
+$ /usr/local/coreseek/bin/search -c etc/csft.conf 网络搜索
+
+【注意】 
+
+　　1,如果输入/usr/local/coreseek/bin/indexer -c etc/csft.conf --all 时报/usr/local/coreseek/bin/indexer: error while loading shared libraries: libmysqlclient.so.18: cannot open shared object file: No such file or directory 错误，可以通过vi编辑 /etc/ld.so.conf文件来修复这个错,将 /usr/local/MySQL/lib  加到文件到尾部，并保存文件,然后运行ldconfig命令即可。
+
+　　2，如果输入/usr/local/coreseek/bin/indexer -c etc/csft.conf --all，报xmlpipe2 support NOT compiled in. To use xmlpipe2, install missing错误，则apt-get install expat-* 或yum install expat-devel*安装后重新编辑安装coreseek。
+
+
+三，Sphinx配置mysql数据源：
+　1,首先，要搞清楚coreseek的bin目录下的 三个主要文件是干嘛的：
+　　1./usr/local/coreseek/bin/indexer indexer文件，用于建立/更新/合并数据源的索引
+　　　/usr/local/coreseek/bin/indexer -c etc/csft_mysql.conf --all 为csft_mysql.conf配置文件中配置的所有数据源建立索引
+　　2./usr/local/coreseek/bin/search search文件，用于测试数据源的搜索
+
+　　　/usr/local/coreseek/bin/search -c etc/csft_mysql.conf 网络搜索 测试csft_mysql.conf配置文件中配置的数据源是否有“网络搜索”这个内容
+　　3./usr/local/coreseek/bin/searchd searchd文件，负责接受查询、处理查询和返回数据集的服务
+
+　　　/usr/local/coreseek/bin/searchd -c etc/csft_mysql.conf 通过csft_mysql.conf的searchd配置开启负责接受查询、处理查询和返回数据集的服务
+　　　
+
+　　2,再者，搞清楚我们要为mysql中的某个数据库中哪(几)个表建立索引。
+　　下面以一个案例作为例子讲解：
+　　一个在线聊天项目，使用了数据库test_qq,以say作为存储聊天内容表，此项目有一个“查找聊天记录”的功能,此表内容基本会达到海量的，因此为了提高查找速度，为表say建立索引(sphinx的数据源)，表say有如下结构：
+
+	mysql> use test_qq;
+Database changed
+mysql> desc say;
++---------+------------------+------+-----+---------+----------------+
+| Field   | Type             | Null | Key | Default | Extra          |
++---------+------------------+------+-----+---------+----------------+
+| id      | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| fromid  | int(10) unsigned | NO   |     | 0       |                |
+| toid    | int(10) unsigned | NO   |     | 0       |                |
+| content | text             | NO   |     | NULL    |                |
++---------+------------------+------+-----+---------+----------------+
+要配置mysql数据源，我们将coreseek安装包/testpack/etc 下的csft_mysql.conf文件复制到coreseek 的etc目录中:
+cp /coreseek安装包位置/testpack/etc/csft_mysql.conf /usr/local/coreseek/etc/
+修改csft_mysql.conf
+
+/usr/local/coreseek/bin/searchd -c /usr/local/coreseek/etc/csft_mysql.conf
+
+再执行整体索引
+/usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf --all
+
+此时便可以使用search 来测试搜索
+/usr/local/coreseek/bin/search -c /usr/local/coreseek/etc/csft_mysql.conf 你好
+
+得出搜索结果，即为配置成功
+
+但是问题来了，indexer索引是一次性的，如果是10：00am执行索引，search就只能搜索到10:00am以前的内容，那如果更多的人在10：00am后发消息，say表中多出的聊天内容行就无法被索引到，search测试也就无法搜索到多出的内容，我们就考虑到增量索引。
+
+•配置增量索引：
+
+　　1.在mysql中创建索引记录偏移表sph_say_counter，当执行一次索引后，sph_say_counter表更新该次索引最大id，等下次执行索引时，便从该记录的最大id开始执行索引，执行后再将该次索引最大id记录到sph_say_counter中。如此重复。
+　　　　sph_say_counter表结构：
+
+	mysql> desc sph_say_counter;
+	+------------+---------------------+------+-----+---------+----------------+
+	| Field      | Type                | Null | Key | Default | Extra          |
+	+------------+---------------------+------+-----+---------+----------------+
+	| id         | tinyint(3) unsigned | NO   | PRI | NULL    | auto_increment |
+	| max_offset | int(10) unsigned    | NO   |     | 0       |                |
+	+------------+---------------------+------+-----+---------+----------------+
+	
+	
+	　　2. 在csft_mysql.conf增加增量索引配置
+	
+	#增加以下配置
+source delta : mysql #此写法为delta继承mysql源中的所有配置，如果子配置中有相同配置，则覆盖父配置
+{
+        sql_query       =       SELECT id,fromid,toid,content FROM say WHERE id > (SELECT max_offset FROM sph_say_counter WHERE id = 1) #从记录大于max_offset后的数据开始索引
+        sql_query_post  =       REPLACE INTO sph_say_counter(id,max_offset) SELECT 1,MAX(id) FROM say #索引后更新最大记录,sql_query_pre是执行查询前执行的语句，sql_query_post是执行查询后再执行的语句
+}
+index delta : mysql
+{
+        source          =       delta
+        path            =       /usr/local/coreseek/var/data/delta
+}
+
+
+　此时执行增量索引 /usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf delta --rotate  后，便可以通过search搜索到多出内容的搜索结果
+
+　　可以通过合并索引 /usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf --merge mysql delta --rotate --merge-dst-range deleted 0 0  来合并mysql源和delta源的索引 （--merge-dst-range deleted 0 0 是为了防止多个关键字指向同一个文档）
+
+　　
+
+　　为了在执行索引时也可以更新sph_say_counter表，在source mysql内也加入这句：
+
+sql_query_pre           = REPLACE INTO sph_say_counter(id,max_offset) SELECT 1,MAX(id) FROM say
+　　此时执行 /usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf --all --rotate 便可以重新建立所有索引并更新sph_say_counter表
+
+　　
+
+　　到此csft_mysql.conf完整配置为:
+
+　　3.将执行索引加入到Linux计划任务中，定时执行更新,合并，整体索引　
+
+　　为了方便，我们将执行整体索引，增量索引，合并索引分别写到3个shell文件中
+	cd /usr/local/coreseek/sh
+vi all.sh
+/usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf --all --rotate
+
+vi delta.sh
+/usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf delta --rotate 
+
+vi merge.sh
+/usr/local/coreseek/bin/indexer -c /usr/local/coreseek/etc/csft_mysql.conf --merge mysql delta --rotate --merge-dst-range deleted 0 0 
+
+　然后，执行crontab -e 写入如下内容
+
+*/1 * * * * /bin/sh /usr/local/coreseek/sh/delta.sh >/dev/null 2>&1 ##每1分钟执行增量索引
+*/5 * * * * /bin/sh /usr/local/coreseek/sh/merge.sh >/dev/null 2>&1 ##每5分钟合并索引
+30 1 * * *  /bin/sh /usr/local/coreseek/sh/all.sh >/dev/null 2>&1   ##每天的1:30执行整体索引
+
+具体执行时间随自己定义，关于linux计划任务的更多配置，你可以点击此传送查看详细。
+http://blog.chinaunix.net/uid-7552018-id-182133.html
+关于rotate,可以点此查看详细。
+http://blog.csdn.net/ddl007/article/details/7016390
+
+http://www.coreseek.cn/products-install/mysql/
+http://www.cnblogs.com/yjf512/p/3598332.html
+
+
+
+四，PHP使用Sphinx/Coreseek的三种方式：
+ 　　在/coreseek安装包/testpack/api目录下提供了PHP的接口文件 sphinxapi.php，这个文件包含一个SphinxClient的类,你可以复制到项目目录下包含使用。
+ 
+ <?php
+ 2 
+ 3 /*
+ 4    test_sph.php 
+ 5     SphinxClient类测试
+ 6 */
+ 7 
+ 8 $key=trim($_GET['key']);
+ 9 echo $key;
+10 include('sphinxapi.php');
+11 
+12 $sp=new SphinxClient();
+13 $sp->SetServer('localhost',9312);
+14 $sp->SetArrayResult(true);
+15 $sp->SetMatchMode(SPH_MATCH_ALL);
+16 $sp->SetSortMode(SPH_SORT_RELEVANCE);
+17 $res=$sp->Query($key,'mysql');
+18 
+19 echo '<pre>';
+20 print_r($res);
+21 echo '</pre>';
+22 
+23 if(isset($res['matches'])&&count($res['matches'])>0)
+24 {
+25     $mysql=new PDO("mysql:localhost;dbname=test_qq",'root','123');
+26     $mysql->query('set names utf8');
+27     $mysql->query('use test_qq');
+28     $sql='select * from say where id in(';
+29 
+30     foreach ($res['matches'] as $v)
+31     {
+32         $sql.=$v['id'].',';
+33     }
+34     $sql=trim($sql,',').')';
+35 
+36     echo $sql;
+37     foreach($mysql->query($sql) as $v)
+38     {
+39         echo '<pre>';
+40         print_r($v);
+41         echo '</pre>';
+42     }
+43 }
+44 else
+45 {
+46     echo '没有记录';
+47 }
+
+
+
+　　浏览器输入localhost/test_sph.php?key=搜索关键字   查看搜索结果
+
+四-2，安装php的sphinx扩展
+ 　　除了可以直接包含 sphinxapi.php文件，还可以通过安装php的sphinx扩展模块来直接调用SphinxClient,且效率比包含api文件要高，安装sphinx需要依赖libsphinxclient包，因此先安装。
+ 
+ 　　1,安装libsphinxevent
+ 
+  1 # cd /coreseek安装包目录/csft-4.1/api/libsphinxclient/
+ 2 # ./configure  --prefix=/usr/local/sphinxclient
+ 3 
+ 4 configure: creating ./config.status
+ 5 config.status: creating Makefile
+ 6 config.status: error: cannot find input file: Makefile.in   #报错configure失败    
+ 7 
+ 8 //处理configure报错
+ 9 编译过程中报了一个config.status: error: cannot find input file: src/Makefile.in这个的错误，然后运行下列指令再次编译就能通过了：
+10 # aclocal
+11 # libtoolize --force
+12 # automake --add-missing
+13 # autoconf
+14 # autoheader
+15 # make clean
+16 
+17 //从新configure编译
+18 # ./configure
+19 
+20 # make && make install
+
+
+　　2，安装sphinx的PHP扩展
+
+1 http://pecl.php.net/package/sphinx
+ 2 # wget http://pecl.php.net/get/sphinx-1.3.0.tgz
+ 3 # tar zxvf sphinx-1.3.0.tgz
+ 4 # cd sphinx-1.3.0
+ 5 # phpize
+ 6 # ./configure --with-php-config=/usr/bin/php-config --with-sphinx=/usr/local/sphinxclient
+ 7 # make && make install
+ 8 # cd /etc/php.d/
+ 9 # cp gd.ini  sphinx.ini
+10 # vi sphinx.ini
+11 
+12 extension=sphinx.so
+13 
+14 # service php-fpm restart
+
+
+　　安装完毕后，你可以使用四-2的 test_sqh.php测试搜索
+
+
+　　分页测试：
+<?php
+ 2     header("Content-type: text/html; charset=utf-8");
+ 3     require("./sphinxapi.php");
+ 4     $s = new SphinxClient;
+ 5     $s->setServer("192.168.252.132", 9312);
+ 6     
+ 7     //SPH_MATCH_ALL, 匹配所有查询词(默认模式); SPH_MATCH_ANY, 匹配查询词中的任意一个; SPH_MATCH_EXTENDED2, 支持特殊运算符查询
+ 8     $s->setMatchMode(SPH_MATCH_ALL);
+ 9     $s->setMaxQueryTime(30);                                        //设置最大搜索时间
+10     $s->SetArrayResult(false);                                        //是否将Matches的key用ID代替
+11     $s->SetSelect ( "*" );                                            //设置返回信息的内容,等同于SQL
+12     $s->SetRankingMode(SPH_RANK_BM25);                                //设置评分模式，SPH_RANK_BM25可能使包含多个词的查询的结果质量下降。 
+13     //$s->SetSortMode(SPH_SORT_EXTENDED);                            //发现增加此参数会使结果不准确
+14     //$s->SetSortMode(SPH_SORT_EXTENDED,"from_id asc,id desc");        //设置匹配项的排序模式, SPH_SORT_EXTENDED按一种类似SQL的方式将列组合起来，升序或降序排列。
+15     $weights = array ('company_name' => 20);
+16     $s->SetFieldWeights($weights);                                    //设置字段权重
+17     $s->SetLimits ( 0, 30, 1000, 0 );                                //设置结果集偏移量  SetLimits (便宜量,匹配项数目,查询的结果集数默认1000,阀值达到后停止)
+18     //$s->SetFilter ( $attribute, $values, $exclude=false );        //设置属性过滤
+19     //$s->SetGroupBy ( $attribute, $func, $groupsort="@group desc" );    //设置分组的属性
+20     $res = $s->query('@* "汽车"','main','--single-0-query--'); #[宝马]关键字，[news]数据源source
+21     
+22     
+23     //代码高亮
+24     $tags = array();
+25     $tags_name = array();
+26     foreach($res['matches'] as $key=>$value){
+27         $tags[] = $value['attrs'];
+28           $company_name[] = $value['attrs']['company_name'];
+29           $description[] = $value['attrs']['description'];
+30     }
+31     $company_name = $s->BuildExcerpts ($company_name, 'main', '汽车', $opts=array() );        //执行高亮，这里索引名字千万不能用*
+32     $description = $s->BuildExcerpts ($description, 'main', '汽车', $opts=array() );        //执行高亮，这里索引名字千万不能用*
+33     foreach($tags as $k=>$v)
+34     {
+35         $tags[$k]['company_name'] = $company_name[$k];    //高亮后覆盖
+36         $tags[$k]['description'] = $description[$k];    //高亮后覆盖
+37     }
+38     
+39     // 高亮后覆盖
+40     $i = 0;
+41     foreach($res['matches'] as $key=>$value){
+42         $res['matches'][$key] = $tags[$i];
+43         $i++;
+44     }
+45     
+46     $err = $s->GetLastError();
+47     
+48     echo '<pre>';
+49     var_export($res);
+50     var_export($err);
+51     echo '</pre>';
+
+
+更多SphinxClient类的资料，可以参考官方文档。
+http://php.net/manual/zh/class.sphinxclient.php
+
+
+四-3，为 MySQL 5.5.x 编译安装 SphinxSE
+
+　　直接安装SphinxSe作为mysql的存储引擎，php的无需作任何改变，即可使用sphinx的全文索引
+
+#---------------MySQL 5.5 基本设置编译-----------
+
+#以下指令中的VERSION表示MySQL的版本，例如：5.5.8，或者5.5.9
+$ tar xzvf coreseek-4.1-beta.tar.gz
+$ tar xzvf mysql-VERSION.tar.gz #就是上面下载的mysql源码包
+$ cp -R coreseek-4.1-beta/csft-4.1/mysqlse mysql-VERSION/storage/sphinx
+#上面语句是将mysqlse文件夹复制到storage文件夹下并更名为sphinx，请注意
+$ cd mysql-VERSION
+$ cmake . -DCMAKE_BUILD_TYPE=Release -DWITH_SPHINX_STORAGE_ENGINE=1 #如果提示没有命令 先"yum -y install cmake" 安装cmake
+#如果上面语句报“Warning: Bison executable not found in PATH”，则安装bison，再运行此语句
+#如果提示缺少ncurses库,则 apt-get install libncurses-dev 或 yum -y install ncurses-devel 安装ncurses库后,删除CMakeCache.txt文件,再重新cmake即可
+
+#如要查看cmake可用参数，请执行：cmake . -LH
+$ make
+
+
+#----------将SphinxSE安装到已经安装的MySQL 5.5中-----------
+
+#首先执行：MySQL 5.5 基本设置编译过程
+#特别注意：需要选择与当前已安装的MySQL 5.5对应的版本进行编译
+$ cp storage/sphinx/ha_sphinx.so /path_to_your_mysql_5.5/lib/plugin
+$ mysql -uroot -p???
+mysql>install plugin sphinx soname "ha_sphinx.so";
+mysql>show engines;
+#ENGINE列表显示出SPHINX表示安装成功
+
+
+测试使用SphinxSe：
+
+#-------------------------测试SphinxSe--------------------------------------
+mysql> use test_qq;
+
+mysql> CREATE TABLE documents_sphinxse
+-> (
+-> id INTEGER UNSIGNED NOT NULL,
+-> weight INTEGER NOT NULL,
+-> query VARCHAR(3072) NOT NULL,
+-> group_id INTEGER,
+-> INDEX(query)
+-> ) ENGINE=SPHINX CONNECTION="sphinx://localhost:9312/mysql";
+
+#-----------执行sphinxse查询-----------------------------
+mysql>SELECT * FROM documents_sphinxse WHERE query='网络搜索;mode=any';
+
+#--------执行关联SphinxSE查询，获取原始数据信息：-----------
+mysql>SELECT dse.*, d.title FROM documents_sphinxse AS dse LEFT JOIN documents AS d USING(id) WHERE query='网络搜索;mode=any';
+
+
+五，参考文档
+
+　  http://blog.csdn.NET/e421083458/article/details/21529969
+
+　　http://www.coreseek.cn/products-install/sphinxse/
+
+　　http://blog.csdn.Net/keyunq/article/details/45129867
+
+　　http://www.cnblogs.com/yjf512/p/3598332.html
+
+文章来源：http://www.cnblogs.com/GaZeon/p/5327578.html
