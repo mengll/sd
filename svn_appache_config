@@ -1,0 +1,81 @@
+准备安装环境
+yum -y install gcc* openssl-devel expat-devel openssl openssl-devel libxml2-devel glibc-common gd-devel
+下载源码包
+wget http://subversion.tigris.org/downloads/subversion-1.6.20.tar.gz;  
+wget http://subversion.tigris.org/downloads/subversion-deps-1.6.20.tar.gz;  
+wget http://mirror.bjtu.edu.cn/apache/httpd/httpd-2.2.23.tar.gz;  
+wget http://archive.apache.org/dist/apr/apr-1.4.6.tar.gz
+wget http://archive.apache.org/dist/apr/apr-util-1.5.1.tar.gz
+安装apr
+tar zxvf apr-1.4.6.tar.gz  
+cd apr-1.4.6  
+./configure --prefix=/usr/local/apr  
+make  
+make install
+如果在编译中出现如下报错
+/bin/rm: cannot remove `libtoolT': No such file or directory  编辑文件：vim configure--->将 RM='$RM'修改为 RM='$RM -f'即可。
+安装apr-util
+tar zxvf apr-util-1.5.1.tar.gz  
+cd apr-util-1.5.1  
+./configure --with-apr=/usr/local/apr  
+
+make  
+make install
+安装apache
+tar zxvf httpd-2.2.23.tar.gz  
+cd httpd-2.2.23  
+
+./configure --prefix=/usr/local/apache --enable-dav --enable-so --enable-maintainer-mode --with-apr=/usr/local/apr/bin/apr-1-config --with-apr-util=/usr/local/apr/bin/apu-1-config --with-pcre=/usr/local/pcre/bin/pcre-config
+
+make  
+make install
+
+安装SVN
+tar zxvf subversion-1.6.20.tar.gz  
+tar zxvf subversion-deps-1.6.20.tar.gz（subversion-deps中的目录和文件会自动解压到subversion-1.6.20目录下，所以就不用费心再去找subversion-deps-1.6.20这个目录了）  
+./configure --prefix=/usr/local/svn --with-apxs=/usr/local/apache/bin/apxs --with-apr=/usr/local/apr --with-apr-util=/usr/local/apr  
+make  
+make install
+
+会在 /usr/local/apache/conf/http.conf
+
+查看当前的svn的模块
+、usr/local/apache/modules
+定义Apache访问SVN配置信息，在/usr/local/apache/conf/httpd.conf中任意位置添加如下内容：
+#SVN Configuration  
+<Location /svn>
+DAV svn  
+SVNParentPath /svn/repos  （SVN服务器的根目录路径）
+AuthType Basic  
+AuthName "Subversion repository"  
+AuthUserFile /svn/repos/svnpasswd  （SVN服务器的本地访问控制文件路径）
+AuthzSVNAccessFile /svn/repos/svnaccessfile  （SVN服务器的项目控制文件路径）
+Require valid-user  
+</Location>
+定义Apache的服务器名称，即在/usr/local/apache/conf/httpd.conf中任意位置添加如下内容：
+ServerName node.mydomain.com:80  
+接着配置SVN服务器，主要内容包括创建SVN服务器的根目录路径以及生成上面所配置的用户管理文件和访问权限文件。
+创建SVN服务器的根目录
+mkdir -p /svn/repos/project  
+
+chown daemon.apache /svn/repos/project  
+
+chmod 755 /svn/repos/project
+创建本地访问控制文件，添加用户admin的用户名和密码，需要输入两次密码确认
+/usr/local/apache/bin/htpasswd -cm /svn/repos/svnpasswd admin
+（第一次创建本地访问控制文件时需要加 -c 参数，表示创建该文件，之后不再加该参数，-m MD5加密方式）
+创建本地项目控制文件，添加访问项目的用户组、用户以及访问权限，因为上面仅添加了admin用户，所以这里只添加amdin用户组的访问权限，内容如下：
+#vim /svn/repos/svnaccessfile  
+[/]  
+admin = rw
+* = r  
+创建一个新的代码库repos
+/usr/local/svn/bin/svnadmin create /svn/repos/project/
+启动svn服务器
+/usr/local/svn/bin/svnserve -d -r /svn/repos/
+如果出现apache的error_log出现Can't open file '/svn/repos/project/db/txn-current-lock': Permission denied  [500, #13]
+修改如下权限
+chmod 777 project/db
+chown -R daemon.apache project/db
+启动apache服务器
+/usr/local/apache/bin/apachectl start
