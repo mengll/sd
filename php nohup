@@ -1,0 +1,9 @@
+1）使用nohup创建一个不断运行的服务任务 
+nohup ./index.php asd mn&
+
+index.php
+
+#!/usr/local/bin/php
+<?
+  $aguments = $argv; 获取php命令行的方式传递过来的参数
+?>
