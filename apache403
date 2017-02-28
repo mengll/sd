@@ -1,0 +1,5 @@
+wamp2.5内置了Apache2.4.9，先安装完wamp2.5。
+打开Apache目录\wamp\bin\apache\apache2.4.9下的“conf”文件夹，完整路径：C:\wamp\bin\apache\apache2.4.9\conf，找到httpd.conf，用sublime text或者notepad等代码编辑器打开。
+找到#   onlineoffline tag - don't remove下方的：Require local。
+将  Require local   替换成： Require all granted  即可。
+
