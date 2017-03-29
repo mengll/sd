@@ -1,0 +1,106 @@
+package main
+
+import (
+	_ "anfan/routers"
+
+	"database/sql"
+	"fmt"
+
+	"github.com/astaxie/beego"
+
+	"github.com/astaxie/beego/orm"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+type mydb *sql.DB
+
+func init() {
+	db, err := sql.Open("mysql", "root:123456@tcp(192.168.1.248:3306)/anfanapi")
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	defer db.Close()
+
+	// Execute the query
+	rows, err := db.Query("SELECT * FROM orders order by id desc limit 0,10")
+
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	// Get column names
+	columns, err := rows.Columns() //get
+
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(columns))
+
+	// rows.Scan wants '[]interface{}' as an argument, so we must copy the
+	// references into such a slice
+	// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+	// Fetch rows
+	for rows.Next() {
+		// get RawBytes from data
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err.Error()) // proper error handling instead of panic in your app
+		}
+
+		// Now do something with the data.
+		// Here we just print each column as a string.
+		var value string
+		for i, col := range values {
+			// Here we can check if the value is nil (NULL value)
+			if col == nil {
+				value = "NULL"
+			} else {
+				value = string(col)
+			}
+			fmt.Println(columns[i], ": ", value)
+		}
+		fmt.Println("-----------------------------------")
+	}
+	if err = rows.Err(); err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	//创建orm的数据库连接
+	orm.RegisterDriver("mysql", orm.DRMySQL)
+
+	orm.RegisterDataBase("default", "mysql", "root:123456@tcp(192.168.1.248:3306)/anfanapi?charset=utf8")
+
+}
+
+func main() {
+	if beego.BConfig.RunMode == "dev" {
+		o := orm.NewOrm()
+		o.Using("default") // 默认使用 default，你可以指定为其他数据库
+
+		type User struct {
+			Id  int
+			Uid string
+		}
+
+		var users []User
+
+		num, err := o.Raw("SELECT id, uid FROM orders order by id desc limit 0,10").QueryRows(&users)
+
+		if err == nil {
+			fmt.Println("user nums: ", num)
+			fmt.Println(users[0].Uid)
+		}
+
+		beego.BConfig.WebConfig.DirectoryIndex = true
+		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+	}
+	beego.Run()
+}
+
+//初始化的操作，都放在main.go的文件中
