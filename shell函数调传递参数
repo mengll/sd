@@ -1,0 +1,13 @@
+#!/bin/sh
+
+gname=$0
+
+
+show()
+{
+   echo "$1"
+   echo gname 
+}
+
+show fjk #函数传递参数的形式 
+~                                         
