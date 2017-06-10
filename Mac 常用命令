@@ -21,3 +21,5 @@ $ scp .zshrc username@192.168.100.100:/Users/username/
 ssh -p 8080 damin@服务器ip地址
 
 scp AngularJS权威教程.pdf root@123.57.233.38:/usr/share/nginx/dandan
+
+scp -r dsp root@106.75.139.68:/root/gowork/src
