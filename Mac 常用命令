@@ -23,3 +23,8 @@ ssh -p 8080 damin@服务器ip地址
 scp AngularJS权威教程.pdf root@123.57.233.38:/usr/share/nginx/dandan
 
 scp -r dsp root@106.75.139.68:/root/gowork/src
+
+
+//带有端口的传递
+
+ scp -P 49112 coreseek-4.1-beta.tar.gz  sphinx-2.2.11-release.tar.gz root@59.175.144.92:/usr/local/src/
