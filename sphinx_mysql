@@ -32,6 +32,8 @@ $ cd csft-4.1
 $ sh buildconf.sh    #输出的warning信息可以忽略，如果出现error则需要解决
 $ ./configure --prefix=/usr/local/coreseek  --without-unixodbc --with-mmseg --with-mmseg-includes=/usr/local/mmseg3/include/mmseg/ --with-mmseg-libs=/usr/local/mmseg3/lib/ --with-mysql    ##如果提示mysql问题，可以查看MySQL数据源安装说明
 
+./configure --prefix=/usr/local/coreseek  --without-unixodbc --with-mmseg --with-mmseg-includes=/usr/local/mmseg3/include/mmseg/ --with-mmseg-libs=/usr/local/mmseg3/lib/ --with-mysql-includes=/usr/local/mysql/include/ --with-mysql-libs=/usr/local/mysql/lib/
+
 #不想麻烦，可以直接使用下面这句
 $ ./configure --prefix=/usr/local/coreseek  --without-unixodbc --with-mmseg --with-mmseg-includes=/usr/local/mmseg3/include/mmseg/ --with-mmseg-libs=/usr/local/mmseg3/lib/ --with-mysql-includes=《mysql安装目录》/include --with-mysql-libs=《mysql安装目录》/lib
 $ make && make install
