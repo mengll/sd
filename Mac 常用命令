@@ -28,3 +28,7 @@ scp -r dsp root@106.75.139.68:/root/gowork/src
 //带有端口的传递
 
  scp -P 49112 coreseek-4.1-beta.tar.gz  sphinx-2.2.11-release.tar.gz root@59.175.144.92:/usr/local/src/
+
+退出 tail -n 100 jj -f
+使用ctrl +c 或control + del执行退出
+
