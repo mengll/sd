@@ -32,3 +32,5 @@ scp -r dsp root@106.75.139.68:/root/gowork/src
 退出 tail -n 100 jj -f
 使用ctrl +c 或control + del执行退出
 
+退出指令  Ctrl |\    退出当前查询
+
