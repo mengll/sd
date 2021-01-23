@@ -8,3 +8,6 @@ comand + shift + g 打开文件
 
 ### 正则
 /\*\s\d+\s\*/\s{\s+"match"\s:\s\[\s+"([A-Z0-9-]+)"\s+\]\s+}\s
+
+### window
+\s*/\*\s\d+\s\*/\s+{\s+"match"\s:\s\[\s+"([A-Z0-9-]+)"\s+\]\s*}\s*
