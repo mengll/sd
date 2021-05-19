@@ -37,4 +37,8 @@ json.stringify(); 虚拟的属性，在转换的时候会出现传唤不成功�
 schema.static.names = function(){ //可以传递相关的参数，完成性能的传递的表现的方式
 
 
+// 数据迁移处理
+var dt = db.getCollection('gdt_report').find({})
+while(dt.hasNext()) db.mll.insert(dt.next())
+
 }
